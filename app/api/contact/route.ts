@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 
 /**
- * Contact form endpoint. Two delivery paths, tried in order:
+ * Contact form endpoint.
  *
- *  1. Resend  – used when RESEND_API_KEY is set. Best deliverability, and the
- *               only option that can send from your own domain.
- *  2. FormSubmit – zero-signup fallback so the form works out of the box. The
- *               very first message triggers a one-time confirmation email to
- *               CONTACT_TO; click the link in it and every later message lands
- *               in that inbox automatically.
+ * When RESEND_API_KEY is set, mail is sent via Resend (best deliverability).
+ * Otherwise the client falls back to FormSubmit in the browser — FormSubmit
+ * often fails when called from a server-side route, which is why messages
+ * were not arriving.
  *
  * Env:
  *   RESEND_API_KEY  – optional, from https://resend.com/api-keys
@@ -60,6 +58,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That email address looks invalid." }, { status: 400 });
   }
 
+  const apiKey = process.env.RESEND_API_KEY;
+
+  // No Resend key — tell the browser to deliver via FormSubmit instead.
+  if (!apiKey) {
+    return NextResponse.json({ fallback: "formsubmit", to: TO });
+  }
+
   const html = `
     <h2 style="margin:0 0 16px">New portfolio enquiry</h2>
     <p style="margin:0 0 4px"><strong>Name:</strong> ${escapeHtml(name)}</p>
@@ -70,67 +75,33 @@ export async function POST(request: Request) {
   `;
 
   const line = subject || `Portfolio enquiry from ${name}`;
-  const apiKey = process.env.RESEND_API_KEY;
 
   try {
-    if (apiKey) {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: FROM,
-          to: [TO],
-          reply_to: email,
-          subject: line,
-          html,
-        }),
-      });
-
-      if (!res.ok) {
-        const detail = await res.text();
-        console.error("Resend rejected the message:", res.status, detail);
-        return NextResponse.json(
-          { error: "Couldn't send the message. Please email me directly." },
-          { status: 502 },
-        );
-      }
-
-      return NextResponse.json({ ok: true });
-    }
-
-    // No Resend key — fall back to FormSubmit, which needs no account.
-    const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(TO)}`, {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        name,
-        email,
-        _subject: line,
-        message,
-        _replyto: email,
-        _template: "table",
-        _captcha: "false",
+        from: FROM,
+        to: [TO],
+        reply_to: email,
+        subject: line,
+        html,
       }),
     });
 
     if (!res.ok) {
       const detail = await res.text();
-      console.error("FormSubmit rejected the message:", res.status, detail);
-      return NextResponse.json(
-        { error: "Couldn't send the message. Please email me directly." },
-        { status: 502 },
-      );
+      console.error("Resend rejected the message:", res.status, detail);
+      // Fall back so the visitor can still reach you.
+      return NextResponse.json({ fallback: "formsubmit", to: TO });
     }
 
-    return NextResponse.json({ ok: true, provider: "formsubmit" });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Contact form delivery failed:", err);
-    return NextResponse.json(
-      { error: "Couldn't send the message. Please email me directly." },
-      { status: 502 },
-    );
+    return NextResponse.json({ fallback: "formsubmit", to: TO });
   }
 }

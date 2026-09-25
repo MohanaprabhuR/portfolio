@@ -30,24 +30,58 @@ export default function Contact() {
   const [form, setForm] = useState(EMPTY);
   const [status, setStatus] = useState<Status>({ state: "idle" });
 
-  /* Posts to /api/contact, which delivers the mail server-side. */
+  /* Tries Resend via /api/contact; falls back to FormSubmit in the browser. */
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status.state === "sending") return;
     setStatus({ state: "sending" });
 
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      subject: form.subject.trim(),
+      message: form.message.trim(),
+      company: form.company,
+    };
+
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
+      if (data.fallback === "formsubmit") {
+        const to = typeof data.to === "string" ? data.to : profile.email;
+        const line = payload.subject || `Portfolio enquiry from ${payload.name}`;
+        const fs = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(to)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            name: payload.name,
+            email: payload.email,
+            _subject: line,
+            message: payload.message,
+            _replyto: payload.email,
+            _template: "table",
+            _captcha: "false",
+          }),
+        });
+
+        if (!fs.ok) {
+          const err = await fs.json().catch(() => ({}));
+          setStatus({
+            state: "error",
+            message: err.message ?? "Couldn't send the message.",
+          });
+          return;
+        }
+      } else if (!res.ok) {
         setStatus({ state: "error", message: data.error ?? "Something went wrong." });
         return;
       }
+
       setForm(EMPTY);
       setStatus({
         state: "sent",
