@@ -22,8 +22,8 @@ export const profile = {
 };
 
 export const resumes = [
-  { label: "Frontend Developer CV", href: "/Mohanaprabhu-R-Frontend-Developer-CV.pdf" },
-  { label: "UI/UX Designer CV", href: "/Mohanaprabhu-R-UI-UX-Designer-CV.pdf" },
+  { label: "Frontend Developer Resume", href: "/Mohanaprabhu-R-Frontend-Developer-CV.pdf" },
+  { label: "Senior UI/UX Designer Resume", href: "/Mohanaprabhu-R-UI-UX-Designer-CV.pdf" },
 ];
 
 export const stats = [
