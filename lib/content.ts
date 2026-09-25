@@ -6,12 +6,12 @@ export const profile = {
   short: "Mohanaprabhu",
   initials: "MR",
   role: "Frontend Developer",
-  tagline: "Senior Frontend Developer | UI/UX Developer",
+  tagline: "Senior Frontend Developer | UI/UX Designer",
   company: "Timeless Ventures",
   intro:
-    "Senior Frontend Developer and UI/UX practitioner with 9+ years of experience designing and building responsive, accessible, high-performing web applications — and currently leading a team of four developers.",
+    "Senior Frontend Developer and UI/UX practitioner with 9+ years of experience designing and building responsive, accessible, high-performing web applications — including 5 years as a UI/UX designer — and currently leading a team of four developers.",
   about: [
-    "I'm a Senior Frontend Developer and UI/UX practitioner at Timeless Ventures, with 9+ years spent designing and building responsive, accessible and high-performing web applications.",
+    "I'm a Senior Frontend Developer and UI/UX practitioner at Timeless Ventures, with 9+ years spent designing and building responsive, accessible and high-performing web applications, including 5 years focused as a UI/UX designer.",
     "My day job is turning Figma and Photoshop designs into pixel-accurate, reusable UI components with React.js, Next.js, Svelte, HTML5, CSS3 and Tailwind CSS — and customising CMS platforms like WordPress when a client needs to run the site themselves.",
     "I lead a team of four developers, drive code quality through structured reviews, and work closely with designers and stakeholders to ship polished, user-centred products on schedule.",
   ],
@@ -27,8 +27,8 @@ export const resumes = [
 ];
 
 export const stats = [
-  { value: 9, suffix: "+", label: "Years of\nexperience" },
-  { value: 8, suffix: "", label: "Flagship\nprojects" },
+  { value: 9, suffix: "+", label: "Years of\nfrontend" },
+  { value: 5, suffix: "+", label: "Years as\nUI/UX designer" },
   { value: 4, suffix: "", label: "Developers\nled" },
   { value: 20, suffix: "+", label: "Tools in the\ntoolkit" },
 ];
